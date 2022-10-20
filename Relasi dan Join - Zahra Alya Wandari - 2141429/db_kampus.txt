@@ -1,0 +1,68 @@
+CREATE DATABASE db_kampus;
+CREATE TABLE mahasiswa(
+ nim INTEGER PRIMARY KEY NOT NULL,
+ nama VARCHAR(30),
+ jenis_kelamin ENUM('P', 'L'),
+ alamat TEXT)
+ 
+CREATE TABLE ambil_mk(
+ nim INTEGER,
+ kode_mk VARCHAR(6))
+ 
+CREATE TABLE matakuliah(
+ kode_mk VARCHAR(6) PRIMARY KEY NOT NULL,
+ nama_mk VARCHAR(255),
+ sks INTEGER,
+ semester INTEGER)
+ 
+INSERT INTO mahasiswa VALUES ("101", "Arif", "L", "Jl. Kenangan"), 
+ ("102", "Budi", "L", "Jl. Jombang"), 
+ ("103", "Wati", "P", "Jl. Surabaya"), 
+ ("104", "Ika", "P", "Jl. Jombang"), 
+ ("105", "Tono", "L", "Jl. Jakarta"), 
+ ("106", "Iwan", "L", "Jl. Bandung"), 
+ ("107", "Sari", "P", "Jl. Malang");
+ 
+INSERT INTO matakuliah (`kode_mk`, `nama_mk`, 'sks', 'semester') VALUES ('PTI447', 'Praktikum Basis Data', '1', '3'), 
+ ('TIK342', 'Praktikum Basis Data', '1', '3'), 
+ ('PTI333', 'Basis Data Terdistribusi', '3', '5'), 
+ ('TIK123', 'Jaringan Komputer', '2', '5'), 
+ ('TIK333', 'Sistem Operasi', '3', '5'), 
+ ('PTI123', 'Grafika Multimedia', '3', '5'), 
+ ('PTI777', 'Sistem Informasi', '2', '3');
+ 
+INSERT INTO ambil_mk (`nim`, `kode_mk`) VALUES 
+('101', 'PTI447'), 
+('103', 'TIK333'), 
+('104', 'PTI333'), 
+('104', 'PTI777'), 
+('111', 'PTI123'), 
+('123', 'PTI999');
+
+// eksplisit
+SELECT COUNT(distinct mahasiswa.nim) AS "mahasiswa yang mengambil matkul" 
+FROM mahasiswa INNER JOIN ambil_mk ON mahasiswa.nim = ambil_mk.nim;
+// implisit
+SELECT COUNT(distinct mahasiswa.nim) AS "mahasiswa yang mengambil matkul" 
+FROM mahasiswa, ambil_mk WHERE mahasiswa.nim = ambil_mk.nim;
+
+/*2*/
+SELECT mahasiswa.jenis_kelamin, COUNT(mahasiswa.jenis_kelamin) AS jumlah 
+FROM mahasiswa LEFT OUTER JOIN ambil_mk 
+ON mahasiswa.nim = ambil_mk.nim WHERE ambil_mk.nim IS NULL GROUP BY mahasiswa.jenis_kelamin;
+
+/*3*/
+SELECT mahasiswa.nim, mahasiswa.nama, matakuliah.kode_mk, matakuliah.nama_mk 
+FROM mahasiswa INNER JOIN ambil_mk 
+ON mahasiswa.nim = ambil_mk.nim INNER JOIN matakuliah ON ambil_mk.kode_mk = matakuliah.kode_mk;
+
+/*4*/
+SELECT mahasiswa.nim, mahasiswa.nama, SUM(matakuliah.sks) AS jumlah_sks
+FROM mahasiswa INNER JOIN ambil_mk
+ON mahasiswa.nim = ambil_mk.nim INNER JOIN matakuliah ON ambil_mk.kode_mk = matakuliah.kode_mk
+GROUP BY mahasiswa.nama HAVING SUM(matakuliah.sks)>4 AND SUM(matakuliah.sks)<10;
+
+/*5*/
+SELECT matakuliah.kode_mk, matakuliah.nama_mk, matakuliah.sks, matakuliah.semester
+FROM matakuliah LEFT OUTER JOIN ambil_mk
+ON ambil_mk.kode_mk = matakuliah.kode_mk LEFT OUTER JOIN mahasiswa ON mahasiswa.nim = ambil_mk.nim WHERE mahasiswa.nim IS NULL;
